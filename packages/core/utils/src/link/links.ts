@@ -125,7 +125,7 @@ export const LINKS = {
   CustomerAccountHolder: composeLinkName(
     Modules.CUSTOMER,
     "customer_id",
-    Modules.PAYMENT,
+    Modules.PAYMENT,  
     "account_holder_id"
   ),
 }

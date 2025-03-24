@@ -19,6 +19,7 @@ export const joinerConfig = defineJoinerConfig(Modules.ORDER, {
   linkableKeys: {
     claim_id: "OrderClaim",
     exchange_id: "OrderExchange",
+    product_id: "OrderProduct",
   },
   models: [
     Order,

@@ -789,6 +789,19 @@ export interface FilterableProductProps
    */
   q?: string
   /**
+   * Filter products by their associated brand.
+   */
+  brand?: {
+    /**
+     * Filter by brand ID
+     */
+    id?: string | string[]
+    /**
+     * Filter by brand name
+     */
+    name?: string | string[]
+  }
+  /**
    * The status to filter products by
    */
   status?: ProductStatus | ProductStatus[]

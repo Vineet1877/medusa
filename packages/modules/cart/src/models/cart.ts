@@ -75,6 +75,11 @@ const Cart = model
       on: ["billing_address_id"],
       where: "deleted_at IS NULL AND billing_address_id IS NOT NULL",
     },
+    {
+      name: "IDX_cart_created_at",
+      on: ["created_at"],
+      unique: false,
+    },
   ])
 
 export default Cart

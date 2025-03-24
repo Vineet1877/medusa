@@ -1,6 +1,8 @@
 import { Module, Modules } from "@medusajs/framework/utils"
 import { CartModuleService } from "./services"
 
-export default Module(Modules.CART, {
+const CartModule = Module(Modules.CART, {
   service: CartModuleService,
-})
+});
+
+export default CartModule;

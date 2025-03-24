@@ -9,6 +9,9 @@ import {
   ModuleJoinerConfig,
   ModulesSdkTypes,
   ProductTypes,
+  FilterableBrandProps,
+  ProductDTO,
+  BrandDTO,
 } from "@medusajs/framework/types"
 import {
   Product,
@@ -20,6 +23,7 @@ import {
   ProductTag,
   ProductType,
   ProductVariant,
+  Brand,
 } from "@models"
 import { ProductCategoryService } from "@services"
 
@@ -73,7 +77,7 @@ type InjectedDependencies = {
 export default class ProductModuleService
   extends MedusaService<{
     Product: {
-      dto: ProductTypes.ProductDTO
+      dto: ProductDTO
     }
     ProductCategory: {
       dto: ProductTypes.ProductCategoryDTO
@@ -96,6 +100,9 @@ export default class ProductModuleService
     ProductVariant: {
       dto: ProductTypes.ProductVariantDTO
     }
+    Brand: {
+      dto: BrandDTO
+    }
   }>({
     Product,
     ProductCategory,
@@ -105,6 +112,7 @@ export default class ProductModuleService
     ProductTag,
     ProductType,
     ProductVariant,
+    Brand,
   })
   implements ProductTypes.IProductModuleService
 {
@@ -177,55 +185,70 @@ export default class ProductModuleService
   // @ts-ignore
   async retrieveProduct(
     productId: string,
-    config?: FindConfig<ProductTypes.ProductDTO>,
+    config?: FindConfig<ProductDTO>,
     @MedusaContext() sharedContext?: Context
-  ): Promise<ProductTypes.ProductDTO> {
+  ): Promise<ProductDTO> {
     const product = await this.productService_.retrieve(
       productId,
       this.getProductFindConfig_(config),
       sharedContext
     )
 
-    return this.baseRepository_.serialize<ProductTypes.ProductDTO>(product)
+    return this.baseRepository_.serialize<ProductDTO>(product)
   }
 
   @InjectManager()
   // @ts-ignore
   async listProducts(
     filters?: ProductTypes.FilterableProductProps,
-    config?: FindConfig<ProductTypes.ProductDTO>,
+    config?: FindConfig<ProductDTO>,
     sharedContext?: Context
-  ): Promise<ProductTypes.ProductDTO[]> {
+  ): Promise<ProductDTO[]> {
+    // Handle brand filtering if present
+    if (filters?.brand) {
+      const brandFilters: FilterableBrandProps = {
+        id: filters.brand.id,
+        name: filters.brand.name,
+      }
+      
+      // Get filtered brands
+      const brands = await this.baseRepository_.find({ where: brandFilters })
+      const brandIds = brands.map(brand => brand.id)
+      
+      // Add brand filter to product filters
+      filters.brand = { id: brandIds }
+    }
+
     const products = await this.productService_.list(
       filters,
       this.getProductFindConfig_(config),
       sharedContext
     )
 
-    return this.baseRepository_.serialize<ProductTypes.ProductDTO[]>(products)
+    return this.baseRepository_.serialize<ProductDTO[]>(products)
   }
 
   @InjectManager()
   // @ts-ignore
   async listAndCountProducts(
     filters?: ProductTypes.FilterableProductProps,
-    config?: FindConfig<ProductTypes.ProductDTO>,
+    config?: FindConfig<ProductDTO>,
     sharedContext?: Context
-  ): Promise<[ProductTypes.ProductDTO[], number]> {
+  ): Promise<[ProductDTO[], number]> {
     const [products, count] = await this.productService_.listAndCount(
       filters,
       this.getProductFindConfig_(config),
       sharedContext
     )
     const serializedProducts = await this.baseRepository_.serialize<
-      ProductTypes.ProductDTO[]
+      ProductDTO[]
     >(products)
     return [serializedProducts, count]
   }
 
   protected getProductFindConfig_(
-    config: FindConfig<ProductTypes.ProductDTO> = {}
-  ): FindConfig<ProductTypes.ProductDTO> {
+    config: FindConfig<ProductDTO> = {}
+  ): FindConfig<ProductDTO> {
     const relations = config.relations || []
     if (!relations.includes("images")) {
       relations.push("images")

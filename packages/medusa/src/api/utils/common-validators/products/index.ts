@@ -17,6 +17,10 @@ export const StoreGetProductParamsDirectFields = z.object({
   collection_id: z.union([z.string(), z.array(z.string())]).optional(),
   tag_id: z.union([z.string(), z.array(z.string())]).optional(),
   type_id: z.union([z.string(), z.array(z.string())]).optional(),
+  brand: z.object({
+    id: z.union([z.string(), z.array(z.string())]).optional(),
+    name: z.union([z.string(), z.array(z.string())]).optional(),
+  }).optional(),
   created_at: createOperatorMap().optional(),
   updated_at: createOperatorMap().optional(),
   deleted_at: createOperatorMap().optional(),

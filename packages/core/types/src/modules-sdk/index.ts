@@ -27,6 +27,8 @@ export * from "./remote-query"
 export * from "./remote-query-entry-points"
 export * from "./to-remote-query"
 
+export * from "../product"
+
 export type LogLevel =
   | "query"
   | "schema"

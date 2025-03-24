@@ -193,19 +193,19 @@ export class QueryBuilder {
       return { field, attr }
     }
 
-    const getPathOperation = (
-      attr: string,
-      path: string[],
-      value: unknown
-    ): string => {
-      const partialPath = path.length > 1 ? path.slice(0, -1) : path
-      const val = this.transformValueToType(attr, partialPath, value)
-      const result = path.reduceRight((acc, key) => {
-        return { [key]: acc }
-      }, val)
+    // const getPathOperation = (
+    //   attr: string,
+    //   path: string[],
+    //   value: unknown
+    // ): string => {
+    //   const partialPath = path.length > 1 ? path.slice(0, -1) : path
+    //   const val = this.transformValueToType(attr, partialPath, value)
+    //   const result = path.reduceRight((acc, key) => {
+    //     return { [key]: acc }
+    //   }, val)
 
-      return JSON.stringify(result)
-    }
+    //   return JSON.stringify(result)
+    // }
 
     keys.forEach((key) => {
       let value = obj[key]
@@ -248,63 +248,62 @@ export class QueryBuilder {
             const val = operator === "IN" ? subValue : [subValue]
             if (operator === "=" && subValue === null) {
               operator = "IS"
-            } else if (operator === "!=" && subValue === null) {
-              operator = "IS NOT"
             }
 
-            if (operator === "=") {
-              builder.whereRaw(
-                `${aliasMapping[attr]}.data @> '${getPathOperation(
-                  attr,
-                  field as string[],
-                  subValue
-                )}'::jsonb`
-              )
+            builder.whereRaw(
+              `${this.getShortAlias(aliasMapping, attr)}${nested}${castType} ${operator} ?`,
+              val
+            )
+          } else {
+            // Handle nested filters on related entities
+            const { field, attr } = getPathAndField(key)
+            const relatedEntity = field[0]
+            const relatedField = field[1]
+            
+            if (relatedField) {
+              // This is a nested filter on a related entity
+              const relatedValue = value[subKey]
+              const relatedOperator = Object.keys(relatedValue)[0]
+              const relatedFieldValue = relatedValue[relatedOperator]
+              
+              if (OPERATOR_MAP[relatedOperator]) {
+                const operator = OPERATOR_MAP[relatedOperator]
+                const castType = this.getPostgresCastType(attr, field).cast
+                const val = operator === "IN" ? relatedFieldValue : [relatedFieldValue]
+                
+                builder.whereRaw(
+                  `EXISTS (
+                    SELECT 1 FROM ${relatedEntity} r 
+                    WHERE r.id = ${this.getShortAlias(aliasMapping, attr)}.id 
+                    AND r.${relatedField}${castType} ${operator} ?
+                  )`,
+                  val
+                )
+              }
             } else {
+              // This is a direct filter on the current entity
+              const { field, attr } = getPathAndField(key)
+              const nested = new Array(field.length).join("->?")
+              const castType = this.getPostgresCastType(attr, field).cast
+              
               builder.whereRaw(
-                `(${aliasMapping[attr]}.data${nested}->>?)${castType} ${operator} ?`,
-                [...field, ...val]
+                `${this.getShortAlias(aliasMapping, attr)}${nested}${castType} = ?`,
+                [value[subKey]]
               )
             }
-          } else {
-            throw new Error(`Unsupported operator: ${subKey}`)
           }
         })
       } else {
         const { field, attr } = getPathAndField(key)
         const nested = new Array(field.length).join("->?")
+        const castType = this.getPostgresCastType(attr, field).cast
 
-        value = this.transformValueToType(attr, field, value)
-        if (Array.isArray(value)) {
-          const castType = this.getPostgresCastType(attr, field).cast
-          const inPlaceholders = value.map(() => "?").join(",")
-          builder.whereRaw(
-            `(${aliasMapping[attr]}.data${nested}->>?)${castType} IN (${inPlaceholders})`,
-            [...field, ...value]
-          )
-        } else {
-          const operator = value === null ? "IS" : "="
-
-          if (operator === "=") {
-            builder.whereRaw(
-              `${aliasMapping[attr]}.data @> '${getPathOperation(
-                attr,
-                field as string[],
-                value
-              )}'::jsonb`
-            )
-          } else {
-            const castType = this.getPostgresCastType(attr, field).cast
-            builder.whereRaw(
-              `(${aliasMapping[attr]}.data${nested}->>?)${castType} ${operator} ?`,
-              [...field, value]
-            )
-          }
-        }
+        builder.whereRaw(
+          `${this.getShortAlias(aliasMapping, attr)}${nested}${castType} = ?`,
+          [value]
+        )
       }
     })
-
-    return builder
   }
 
   private getShortAlias(aliasMapping, alias: string) {
@@ -347,12 +346,26 @@ export class QueryBuilder {
 
     const allEntities: any[] = []
     if (!entities.shortCutOf) {
-      allEntities.push({
-        entity: mainEntity,
-        parEntity: parentEntity,
-        parAlias: parentAlias,
-        alias: mainAlias,
-      })
+      // Check if this is a foreign key relationship
+      const foreignKey = (entityRef as any).foreignKey
+      if (foreignKey) {
+        // This is a foreign key relationship between modules
+        allEntities.push({
+          entity: mainEntity,
+          parEntity: parentEntity,
+          parAlias: parentAlias,
+          alias: mainAlias,
+          isForeignKey: true,
+          foreignKey: foreignKey
+        })
+      } else {
+        allEntities.push({
+          entity: mainEntity,
+          parEntity: parentEntity,
+          parAlias: parentAlias,
+          alias: mainAlias,
+        })
+      }
     } else {
       const intermediateAlias = entities.shortCutOf.split(".")
 
@@ -411,7 +424,7 @@ export class QueryBuilder {
     let queryParts: string[] = []
     for (const join of allEntities) {
       const joinBuilder = this.knex.queryBuilder()
-      const { alias, entity, parEntity, parAlias } = join
+      const { alias, entity, parEntity, parAlias, isForeignKey, foreignKey } = join
 
       aliasMapping[currentAliasPath] = alias
 
@@ -421,13 +434,22 @@ export class QueryBuilder {
 
         let joinTable = `cat_${cName} AS ${alias}`
 
-        const pivotTable = `cat_pivot_${pName}`
-        joinBuilder.leftJoin(
-          `${pivotTable} AS ${alias}_ref`,
-          `${alias}_ref.parent_id`,
-          `${parAlias}.id`
-        )
-        joinBuilder.leftJoin(joinTable, `${alias}.id`, `${alias}_ref.child_id`)
+        if (isForeignKey) {
+          // Handle foreign key relationship between modules
+          joinBuilder.leftJoin(
+            joinTable,
+            `${alias}.id`,
+            `${parAlias}.${foreignKey}`
+          )
+        } else {
+          const pivotTable = `cat_pivot_${pName}`
+          joinBuilder.leftJoin(
+            `${pivotTable} AS ${alias}_ref`,
+            `${alias}_ref.parent_id`,
+            `${parAlias}.id`
+          )
+          joinBuilder.leftJoin(joinTable, `${alias}.id`, `${alias}_ref.child_id`)
+        }
 
         const joinWhere = this.selector.joinWhere ?? {}
         const joinKey = Object.keys(joinWhere).find((key) => {

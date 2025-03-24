@@ -22,6 +22,7 @@ const _Order = model
     no_notification: model.boolean().nullable(),
     metadata: model.json().nullable(),
     canceled_at: model.dateTime().nullable(),
+    product_id: model.text().nullable(),
     shipping_address: model
       .hasOne<any>(() => OrderAddress, {
         mappedBy: undefined,

@@ -59,6 +59,11 @@ export type SchemaObjectEntityRepresentation = {
    * refers to
    */
   moduleConfig: ModuleJoinerConfig
+
+  /**
+   * The foreign key field name for relationships between modules
+   */
+  foreignKey?: string
 }
 
 export type EntityNameModuleConfigMap = {

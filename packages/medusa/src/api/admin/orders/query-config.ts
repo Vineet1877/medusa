@@ -7,6 +7,7 @@ export const defaultAdminOrderFields = [
   "metadata",
   "created_at",
   "updated_at",
+  "*product",
 ]
 
 export const defaultAdminRetrieveOrderFields = [

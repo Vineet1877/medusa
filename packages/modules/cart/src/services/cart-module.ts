@@ -169,7 +169,7 @@ export default class CartModuleService
     return includeTotals
   }
 
-  private addRelationsToCalculateTotals(config: FindConfig<any>, totalFields) {
+  private addRelationsToCalculateTotals(config: FindConfig<any>, totalFields: string[]) {
     config.relations ??= []
     config.select ??= []
 
@@ -188,10 +188,11 @@ export default class CartModuleService
     ])
 
     config.select = config.select.filter((field) => {
+      const fieldStr = String(field)
       return (
         !requiredFieldsForTotals.some((val) =>
-          val.startsWith(field as string)
-        ) && !totalFields.includes(field)
+          val.startsWith(fieldStr)
+        ) && !totalFields.includes(fieldStr)
       )
     })
   }
@@ -710,9 +711,15 @@ export default class CartModuleService
       )
     }
 
-    return await this.baseRepository_.serialize<
+    const serialized = await this.baseRepository_.serialize<
       CartTypes.CartShippingMethodDTO[]
     >(methods)
+
+    if (isObject(cartIdOrData)) {
+      return (serialized as CartTypes.CartShippingMethodDTO[])[0]
+    }
+
+    return serialized
   }
 
   @InjectTransactionManager()
@@ -1206,10 +1213,7 @@ export default class CartModuleService
       )
     }
 
-    const serialized =
-      await this.baseRepository_.serialize<CartTypes.ShippingMethodTaxLineDTO>(
-        addedTaxLines[0]
-      )
+    const serialized = await this.baseRepository_.serialize<CartTypes.ShippingMethodTaxLineDTO[]>(addedTaxLines)
 
     if (isObject(cartIdOrData)) {
       return serialized[0]

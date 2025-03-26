@@ -1,3 +1,16 @@
 {
-  "extends": "../../_tsconfig.base.json"
+  "extends": "../../_tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@modules/*": ["../modules/*"],
+      "@medusajs/order": ["../modules/order/src"],
+      "@models": ["../modules/order/src/models"],
+      "@services": ["../modules/order/src/services"],
+      "@repositories": ["../modules/order/src/repositories"],
+      "@types": ["../modules/order/src/types"],
+      "@utils": ["../modules/order/src/utils"]
+    }
+  },
+  "include": ["src/**/*", "../modules/order/src/**/*"],
+  "exclude": ["dist", "node_modules"]
 }

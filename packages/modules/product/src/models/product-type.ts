@@ -1,5 +1,5 @@
 import { model } from "@medusajs/framework/utils"
-import { Product } from "@models"
+import { Product } from "../models"
 
 const ProductType = model
   .define("ProductType", {

@@ -10,7 +10,7 @@ import querystring from "querystring"
 import supertest from "supertest"
 
 import { config } from "../mocks"
-import { MedusaContainer } from "@medusajs/types"
+import { MedusaContainer, InternalModuleDeclaration } from "@medusajs/types"
 import { configManager, ConfigModule } from "../../../config"
 import { container } from "../../../container"
 import { featureFlagsLoader } from "../../../feature-flags"
@@ -37,7 +37,7 @@ export const createServer = async (rootDir) => {
   Object.entries(ModulesDefinition).forEach(([moduleKey, module]) => {
     moduleResolutions[moduleKey] = registerMedusaModule(
       moduleKey,
-      module.defaultModuleDeclaration,
+      module.defaultModuleDeclaration as InternalModuleDeclaration,
       undefined,
       module
     )[moduleKey]

@@ -6,6 +6,7 @@ import { OrderShipping } from "./order-shipping-method"
 import { OrderSummary } from "./order-summary"
 import { OrderTransaction } from "./transaction"
 import { Return } from "@models"
+import Product from "../../../product/src/models/product"
 
 const _Order = model
   .define("Order", {
@@ -22,7 +23,9 @@ const _Order = model
     no_notification: model.boolean().nullable(),
     metadata: model.json().nullable(),
     canceled_at: model.dateTime().nullable(),
-    product_id: model.text().nullable(),
+    product_id: model.hasMany<any>(() => Product, {
+      mappedBy: "order",
+    }),
     shipping_address: model
       .hasOne<any>(() => OrderAddress, {
         mappedBy: undefined,

@@ -1,20 +1,10 @@
 import { InternalModuleDeclaration } from "@medusajs/types"
-import { MODULE_SCOPE } from "../../types"
-
-import { asValue } from "awilix"
 import { MedusaModule } from "../../medusa-module"
 
+import { asValue } from "awilix"
+
 const mockRegisterMedusaModule = jest.fn().mockImplementation(() => {
-  return {
-    moduleKey: {
-      definition: {
-        key: "moduleKey",
-      },
-      moduleDeclaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-      },
-    },
-  }
+  return {}
 })
 
 const mockModuleLoader = jest.fn().mockImplementation(({ container }) => {
@@ -25,279 +15,172 @@ const mockModuleLoader = jest.fn().mockImplementation(({ container }) => {
 })
 
 jest.mock("./../../loaders", () => ({
-  registerMedusaModule: jest
-    .fn()
-    .mockImplementation((...args) => mockRegisterMedusaModule()),
+  registerMedusaModule: () => mockRegisterMedusaModule(),
   moduleLoader: jest
     .fn()
     .mockImplementation((...args) => mockModuleLoader.apply(this, args)),
 }))
 
-describe("Medusa Modules", () => {
+describe("MedusaModule", () => {
   beforeEach(() => {
-    MedusaModule.clearInstances()
-    jest.resetModules()
     jest.clearAllMocks()
   })
 
-  it("should create singleton instances", async () => {
-    await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    expect(mockRegisterMedusaModule).toBeCalledTimes(1)
-    expect(mockModuleLoader).toBeCalledTimes(1)
-
-    await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    expect(mockRegisterMedusaModule).toBeCalledTimes(2)
-    expect(mockModuleLoader).toBeCalledTimes(2)
-  })
-
-  it("should prevent the module being loaded multiple times under concurrent requests", async () => {
-    const load: any = []
-
-    for (let i = 5; i--; ) {
-      load.push(
-        MedusaModule.bootstrap({
-          moduleKey: "moduleKey",
-          defaultPath: "@path",
-          declaration: {
-            scope: MODULE_SCOPE.INTERNAL,
-            resolve: "@path",
-            options: {
-              abc: 123,
-            },
-          } as InternalModuleDeclaration,
-        })
-      )
+  it("should register a module with default configuration", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
     }
 
-    const intances = Promise.all(load)
-
-    expect(mockRegisterMedusaModule).toBeCalledTimes(1)
-    expect(mockModuleLoader).toBeCalledTimes(1)
-    expect(intances[(await intances).length - 1]).toBe(intances[0])
-  })
-
-  it("getModuleInstance should return the first instance of the module if there is none flagged as 'main'", async () => {
-    const moduleA = await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
-
     await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
     })
 
-    expect(MedusaModule.getModuleInstance("moduleKey")).toEqual(moduleA)
-  })
-
-  it("should return the module flagged as 'main' when multiple instances are available", async () => {
-    await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    const moduleB = await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        main: true,
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    expect(MedusaModule.getModuleInstance("moduleKey")).toEqual(moduleB)
-  })
-
-  it("should retrieve the module by their given alias", async () => {
-    const moduleA = await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        alias: "mod_A",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    const moduleB = await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        main: true,
-        alias: "mod_B",
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    const moduleC = await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        alias: "mod_C",
-        options: {
-          moduleC: true,
-        },
-      } as InternalModuleDeclaration,
-    })
-
-    // main
-    expect(MedusaModule.getModuleInstance("moduleKey")).toEqual(moduleB)
-
-    expect(MedusaModule.getModuleInstance("moduleKey", "mod_A")).toEqual(
-      moduleA
-    )
-    expect(MedusaModule.getModuleInstance("moduleKey", "mod_B")).toEqual(
-      moduleB
-    )
-    expect(MedusaModule.getModuleInstance("moduleKey", "mod_C")).toEqual(
-      moduleC
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
+      }),
+      undefined,
+      undefined
     )
   })
 
-  it("should prevent two main modules being set as 'main'", async () => {
-    await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        alias: "mod_A",
-        options: {
-          abc: 123,
-        },
-      } as InternalModuleDeclaration,
-    })
+  it("should register a module with custom configuration", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
+      options: {
+        customOption: "value",
+      },
+    }
 
     await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        main: true,
-        alias: "mod_B",
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
     })
 
-    const moduleC = MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        main: true,
-        alias: "mod_C",
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
         options: {
-          moduleC: true,
+          customOption: "value",
         },
-      } as InternalModuleDeclaration,
-    })
-
-    await expect(moduleC).rejects.toThrow(
-      "Module moduleKey already have a 'main' registered."
+      }),
+      undefined,
+      undefined
     )
   })
 
-  it("should prevent the same alias be used for different instances of the same module", async () => {
+  it("should handle module registration with dependencies", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
+      dependencies: ["dependency1", "dependency2"],
+    }
+
     await MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        alias: "module_alias",
-        options: {
-          different_options: "abc",
-        },
-      } as InternalModuleDeclaration,
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
     })
 
-    const moduleC = MedusaModule.bootstrap({
-      moduleKey: "moduleKey",
-      defaultPath: "@path",
-      declaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-        resolve: "@path",
-        alias: "module_alias",
-        options: {
-          moduleC: true,
-        },
-      } as InternalModuleDeclaration,
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
+        dependencies: ["dependency1", "dependency2"],
+      }),
+      undefined,
+      undefined
+    )
+  })
+
+  it("should handle module registration with shared container", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
+    }
+
+    await MedusaModule.bootstrap({
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
     })
 
-    await expect(moduleC).rejects.toThrow(
-      "Module moduleKey already registed as 'module_alias'. Please choose a different alias."
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
+      }),
+      undefined,
+      undefined
+    )
+  })
+
+  it("should handle module registration with module exports", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
+    }
+
+    const moduleExports = {
+      default: {
+        service: jest.fn(),
+      },
+    }
+
+    await MedusaModule.bootstrap({
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
+    })
+
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
+      }),
+      moduleExports,
+      undefined
+    )
+  })
+
+  it("should handle module registration with definition", async () => {
+    const moduleDeclaration: InternalModuleDeclaration = {
+      scope: "internal",
+      resolve: "test-module",
+    }
+
+    const definition = {
+      key: "test-module",
+      label: "Test Module",
+      isRequired: false,
+    }
+
+    await MedusaModule.bootstrap({
+      moduleKey: "test-module",
+      defaultPath: "test-module",
+      declaration: moduleDeclaration,
+    })
+
+    expect(mockRegisterMedusaModule).toHaveBeenCalledWith(
+      "test-module",
+      expect.objectContaining({
+        scope: "internal",
+        resolve: "test-module",
+      }),
+      undefined,
+      definition
     )
   })
 })

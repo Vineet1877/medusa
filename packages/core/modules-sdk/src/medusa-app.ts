@@ -36,7 +36,6 @@ import {
   RegisterModuleJoinerConfig,
 } from "./medusa-module"
 import { createQuery, RemoteQuery } from "./remote-query"
-import { MODULE_SCOPE } from "./types"
 
 const LinkModulePackage = MODULE_PACKAGE_NAMES[Modules.LINK]
 
@@ -125,9 +124,9 @@ export async function loadModules(args: {
       path = MODULE_PACKAGE_NAMES[moduleName]
     }
 
-    declaration.scope ??= MODULE_SCOPE.INTERNAL
+    declaration.scope ??= "internal"
 
-    if (declaration.scope === MODULE_SCOPE.INTERNAL) {
+    if (declaration.scope === "internal") {
       declaration.options ??= {}
 
       if (!declaration.options.database) {
@@ -495,7 +494,7 @@ async function MedusaApp_({
     for (const { resolution: moduleResolution } of moduleResolutions) {
       if (
         !moduleResolution.options?.database &&
-        moduleResolution.moduleDeclaration?.scope === MODULE_SCOPE.INTERNAL
+        moduleResolution.moduleDeclaration?.scope === "internal"
       ) {
         moduleResolution.options ??= {}
         moduleResolution.options.database = {

@@ -1,12 +1,18 @@
 {
   "extends": "../../_tsconfig.base.json",
-  "include": ["src", "./medusa/**/*"],
-  "exclude": [
-    "dist",
-    "__tests__",
-    "helpers",
-    "./**/helpers",
-    "./**/__snapshots__",
-    "node_modules"
-  ]
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": ".",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "paths": {
+      "@medusajs/medusa": ["../../packages/medusa/src"],
+      "@medusajs/core-flows": ["../../packages/core/core-flows/src"],
+      "@medusajs/types": ["../../packages/core/types/src"],
+      "@medusajs/utils": ["../../packages/core/utils/src"],
+      "@medusajs/framework": ["../../packages/core/framework/src"]
+    }
+  },
+  "include": ["src/**/*", "./medusa/**/*"],
+  "exclude": ["build", "node_modules", "../../**/*"]
 }

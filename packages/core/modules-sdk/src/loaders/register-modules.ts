@@ -1,5 +1,4 @@
 import {
-  ExternalModuleDeclaration,
   InternalModuleDeclaration,
   ModuleDefinition,
   ModuleExports,
@@ -12,12 +11,11 @@ import {
   normalizeImportPathWithSource,
 } from "@medusajs/utils"
 import { ModulesDefinition } from "../definitions"
-import { MODULE_SCOPE } from "../types"
 
 export const registerMedusaModule = (
   moduleKey: string,
   moduleDeclaration?:
-    | Partial<InternalModuleDeclaration | ExternalModuleDeclaration>
+    | Partial<InternalModuleDeclaration>
     | string
     | false,
   moduleExports?: ModuleExports,
@@ -33,14 +31,6 @@ export const registerMedusaModule = (
 
   if (modDeclaration !== false && !modDeclaration) {
     throw new Error(`Module: ${moduleKey} has no declaration.`)
-  }
-
-  if (
-    isObject(modDeclaration) &&
-    modDeclaration?.scope === MODULE_SCOPE.EXTERNAL
-  ) {
-    // TODO: getExternalModuleResolution(...)
-    throw new Error("External Modules are not supported yet.")
   }
 
   if (modDefinition === undefined) {
@@ -85,13 +75,9 @@ function getCustomModuleResolution(
       isRequired: false,
       defaultPackage: "",
       dependencies,
-      defaultModuleDeclaration: {
-        scope: MODULE_SCOPE.INTERNAL,
-      },
+      defaultModuleDeclaration: {} as InternalModuleDeclaration,
     },
-    moduleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    moduleDeclaration: {} as InternalModuleDeclaration,
     dependencies,
     options: conf?.options ?? {},
   }

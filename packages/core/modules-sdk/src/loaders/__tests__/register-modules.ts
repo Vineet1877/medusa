@@ -1,6 +1,5 @@
-import { InternalModuleDeclaration, ModuleDefinition } from "@medusajs/types"
+import { InternalModuleDeclaration } from "@medusajs/types"
 import { ModulesDefinition } from "../../definitions"
-import { MODULE_SCOPE } from "../../types"
 import { registerMedusaModule } from "../register-modules"
 
 const testServiceResolved = require.resolve(
@@ -9,13 +8,13 @@ const testServiceResolved = require.resolve(
 const defaultTestService = require.resolve("../__fixtures__/test-service")
 
 describe("module definitions loader", () => {
-  const defaultDefinition: ModuleDefinition = {
+  const defaultDefinition = {
     key: "testService",
     defaultPackage: defaultTestService,
     label: "TestService",
     isRequired: false,
     defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
+      scope: "internal",
     },
   }
 
@@ -163,7 +162,7 @@ describe("module definitions loader", () => {
       })
 
       const res = registerMedusaModule(defaultDefinition.key, {
-        scope: MODULE_SCOPE.INTERNAL,
+        scope: "internal",
         resolve: defaultDefinition.defaultPackage,
       } as InternalModuleDeclaration)
 

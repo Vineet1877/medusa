@@ -1,7 +1,6 @@
 import { Logger, MedusaContainer, ModuleResolution } from "@medusajs/types"
 import { asValue } from "awilix"
 import { EOL } from "os"
-import { MODULE_SCOPE } from "../types"
 import { loadInternalModule } from "./utils"
 
 export const moduleLoader = async ({
@@ -50,32 +49,9 @@ async function loadModule(
   }
 
   const keyName = modDefinition.key
-  const { scope } = resolution.moduleDeclaration ?? ({} as any)
-
-  const canSkip =
-    !resolution.resolutionPath &&
-    !modDefinition.isRequired &&
-    !modDefinition.defaultPackage
-
-  if (scope === MODULE_SCOPE.EXTERNAL && !canSkip) {
-    // TODO: implement external Resolvers
-    // return loadExternalModule(...)
-    throw new Error("External Modules are not supported yet.")
-  }
-
-  if (!scope) {
-    let message = `The module ${resolution.definition.label} has to define its scope (internal | external)`
-
-    container.register(keyName, asValue(undefined))
-
-    return {
-      error: new Error(message),
-    }
-  }
 
   if (resolution.resolutionPath === false) {
     container.register(keyName, asValue(undefined))
-
     return
   }
 

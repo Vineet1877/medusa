@@ -1,5 +1,5 @@
 import { model } from "@medusajs/framework/utils"
-import { Product, ProductOptionValue } from "@models"
+import { Product, ProductOptionValue } from "../models"
 
 const ProductVariant = model
   .define("ProductVariant", {

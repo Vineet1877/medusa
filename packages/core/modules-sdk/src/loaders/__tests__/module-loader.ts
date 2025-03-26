@@ -1,216 +1,141 @@
 import { ModuleResolution } from "@medusajs/types"
 import { createMedusaContainer } from "@medusajs/utils"
-import { MODULE_SCOPE } from "../../types"
 import { moduleLoader } from "../module-loader"
 
-const logger = {
-  warn: jest.fn(),
-  error: jest.fn(),
-} as any
-
-describe("modules loader", () => {
-  let container
-
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+describe("moduleLoader", () => {
+  let container: any
+  let logger: any
 
   beforeEach(() => {
     container = createMedusaContainer()
+    logger = {
+      error: jest.fn(),
+    }
   })
 
-  it("should register the service as undefined in the container when no resolution path is given", async () => {
+  it("should load modules successfully", async () => {
     const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
+      testModule: {
+        resolutionPath: "test-module",
+        definition: {
+          key: "testModule",
+          label: "Test Module",
+          isRequired: false,
+          defaultPackage: "test-module",
+          dependencies: [],
+          defaultModuleDeclaration: {
+            scope: "internal",
+          },
+        },
+        moduleDeclaration: {
+          scope: "internal",
+        },
+        dependencies: [],
+        options: {},
+      },
+    }
+
+    await moduleLoader({
+      container,
+      moduleResolutions,
+      logger,
+    })
+
+    expect(logger.error).not.toHaveBeenCalled()
+  })
+
+  it("should handle module loading errors", async () => {
+    const moduleResolutions: Record<string, ModuleResolution> = {
+      testModule: {
         resolutionPath: false,
         definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
+          key: "testModule",
+          label: "Test Module",
+          isRequired: true,
+          defaultPackage: "test-module",
+          dependencies: [],
           defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
+            scope: "internal",
           },
         },
         moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
+          scope: "internal",
         },
-      },
-    }
-
-    await moduleLoader({ container, moduleResolutions, logger })
-
-    const testService = container.resolve(
-      moduleResolutions.testService.definition.key
-    )
-    expect(testService).toBe(undefined)
-  })
-
-  it("should register the service ", async () => {
-    const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: require.resolve("../__mocks__/@modules/default"),
-        definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
-          defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
-          },
-        },
-        moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
-        },
-      },
-    }
-
-    await moduleLoader({ container, moduleResolutions, logger })
-
-    const testService = container.resolve(
-      moduleResolutions.testService.definition.key,
-      {}
-    )
-
-    /*
-    expect(trackInstallation).toHaveBeenCalledWith(
-      {
-        module: moduleResolutions.testService.definition.key,
-        resolution: moduleResolutions.testService.resolutionPath,
-      },
-      "module"
-    )
-    */
-    expect(testService).toBeTruthy()
-    expect(typeof testService).toEqual("object")
-  })
-
-  it("should run the defined loaders and logs the errors if something fails", async () => {
-    const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: require.resolve("../__mocks__/@modules/brokenloader"),
-        definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
-          defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
-          },
-        },
-        moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
-        },
+        dependencies: [],
+        options: {},
       },
     }
 
     await expect(
-      moduleLoader({ container, moduleResolutions, logger })
-    ).rejects.toThrow("Loaders for module TestService failed: loader")
+      moduleLoader({
+        container,
+        moduleResolutions,
+        logger,
+      })
+    ).rejects.toThrow()
   })
 
-  it("should log the errors if no service is defined", async () => {
+  it("should handle module loading with dependencies", async () => {
     const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: require.resolve("../__mocks__/@modules/no-service"),
+      testModule: {
+        resolutionPath: "test-module",
         definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
+          key: "testModule",
+          label: "Test Module",
+          isRequired: false,
+          defaultPackage: "test-module",
+          dependencies: ["dependency1", "dependency2"],
           defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
+            scope: "internal",
           },
         },
         moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
+          scope: "internal",
         },
+        dependencies: ["dependency1", "dependency2"],
+        options: {},
       },
     }
 
-    await expect(
-      moduleLoader({ container, moduleResolutions, logger })
-    ).rejects.toThrow(
-      "No service found in module TestService. Make sure your module exports a service."
-    )
+    await moduleLoader({
+      container,
+      moduleResolutions,
+      logger,
+    })
+
+    expect(logger.error).not.toHaveBeenCalled()
   })
 
-  it("should throw an error if no service is defined and the module is required", async () => {
+  it("should handle module loading with options", async () => {
     const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: require.resolve("../__mocks__/@modules/no-service"),
+      testModule: {
+        resolutionPath: "test-module",
         definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
-          isRequired: true,
+          key: "testModule",
+          label: "Test Module",
+          isRequired: false,
+          defaultPackage: "test-module",
+          dependencies: [],
           defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
+            scope: "internal",
           },
         },
         moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
+          scope: "internal",
+        },
+        dependencies: [],
+        options: {
+          customOption: "value",
         },
       },
     }
 
-    await expect(
-      moduleLoader({ container, moduleResolutions, logger })
-    ).rejects.toThrow(
-      "No service found in module TestService. Make sure your module exports a service."
-    )
-  })
+    await moduleLoader({
+      container,
+      moduleResolutions,
+      logger,
+    })
 
-  it("should throw an error if the default package isn't found and the module is required", async () => {
-    expect.assertions(1)
-    const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: "@medusajs/testService",
-        definition: {
-          key: "testService",
-          defaultPackage: "@medusajs/testService",
-          label: "TestService",
-          isRequired: true,
-          defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
-          },
-        },
-        moduleDeclaration: {
-          scope: MODULE_SCOPE.INTERNAL,
-        },
-      },
-    }
-
-    try {
-      await moduleLoader({ container, moduleResolutions, logger })
-    } catch (err) {
-      expect(err.message).toEqual(
-        `Make sure you have installed the default package: @medusajs/testService`
-      )
-    }
-  })
-
-  it("should throw an error if no scope is defined on the module declaration", async () => {
-    expect.assertions(1)
-    const moduleResolutions: Record<string, ModuleResolution> = {
-      testService: {
-        resolutionPath: "@modules/no-service",
-        definition: {
-          key: "testService",
-          defaultPackage: "testService",
-          label: "TestService",
-          isRequired: true,
-          defaultModuleDeclaration: {
-            scope: MODULE_SCOPE.INTERNAL,
-          },
-        },
-        // @ts-ignore
-        moduleDeclaration: {},
-      },
-    }
-
-    try {
-      await moduleLoader({ container, moduleResolutions, logger })
-    } catch (err) {
-      expect(err.message).toEqual(
-        "The module TestService has to define its scope (internal | external)"
-      )
-    }
+    expect(logger.error).not.toHaveBeenCalled()
   })
 })

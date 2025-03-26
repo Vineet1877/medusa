@@ -319,7 +319,7 @@ export interface IProductModuleService extends IModuleService {
     sharedContext?: Context
   ): Promise<ProductDTO[]>
 
-  /**
+  /**`
    * This method is used to delete products. Unlike the {@link softDelete} method, this method will completely remove the products and they can no longer be accessed or retrieved.
    *
    * @param {string[]} productIds - The IDs of the products to be deleted.

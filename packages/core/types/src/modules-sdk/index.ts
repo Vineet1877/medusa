@@ -47,7 +47,7 @@ export type CustomModuleDefinition = {
 }
 
 export type InternalModuleDeclaration = {
-  scope: "internal"
+  scope?: "internal"
   dependencies?: string[]
   definition?: CustomModuleDefinition // That represent the definition of the module, such as the one we have for the medusa supported modules. This property is used for custom made modules.
   resolve?: string | ModuleExports
@@ -64,7 +64,7 @@ export type InternalModuleDeclaration = {
 }
 
 export type ExternalModuleDeclaration = {
-  scope: "external"
+  scope?: "external"
   definition?: CustomModuleDefinition // That represent the definition of the module, such as the one we have for the medusa supported modules. This property is used for custom made modules.
   server?: {
     type: "http"

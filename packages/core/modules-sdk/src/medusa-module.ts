@@ -26,7 +26,6 @@ import {
   registerMedusaModule,
 } from "./loaders"
 import { loadModuleMigrations } from "./loaders/utils"
-import { MODULE_SCOPE } from "./types"
 
 const logger: any = {
   log: (a) => console.log(a),
@@ -432,21 +431,18 @@ class MedusaModule {
         MedusaModule.loading_.set(hashKey, loadingPromise)
       }
 
-      let modDeclaration =
-        declaration ??
-        ({} as InternalModuleDeclaration | ExternalModuleDeclaration)
+      let modDeclaration = declaration as InternalModuleDeclaration | undefined
 
-      if (declaration?.scope !== MODULE_SCOPE.EXTERNAL) {
+      if (!modDeclaration) {
         modDeclaration = {
-          scope: declaration?.scope || MODULE_SCOPE.INTERNAL,
           resolve: defaultPath,
-          options: declaration?.options ?? declaration,
-          dependencies:
-            (declaration as InternalModuleDeclaration)?.dependencies ?? [],
-          alias: declaration?.alias,
-          main: declaration?.main,
+          options: declaration?.options ?? {},
+          dependencies: [],
+          alias: undefined,
+          main: false,
           worker_mode: workerMode,
-        } as InternalModuleDeclaration
+          scope: "internal",
+        }
       }
 
       const container = sharedContainer ?? createMedusaContainer()
@@ -746,10 +742,13 @@ class MedusaModule {
     modulePath,
   }: MigrationOptions): Promise<void> {
     const moduleResolutions = registerMedusaModule(moduleKey, {
-      scope: MODULE_SCOPE.INTERNAL,
       resolve: modulePath,
       options,
-    })
+      dependencies: [],
+      alias: undefined,
+      main: false,
+      scope: "internal",
+    } as InternalModuleDeclaration)
 
     const logger_ =
       container?.resolve(ContainerRegistrationKeys.LOGGER, {
@@ -782,10 +781,13 @@ class MedusaModule {
     modulePath,
   }: MigrationOptions): Promise<void> {
     const moduleResolutions = registerMedusaModule(moduleKey, {
-      scope: MODULE_SCOPE.INTERNAL,
       resolve: modulePath,
       options,
-    })
+      dependencies: [],
+      alias: undefined,
+      main: false,
+      scope: "internal",
+    } as InternalModuleDeclaration)
 
     const logger_ =
       container?.resolve(ContainerRegistrationKeys.LOGGER, {
@@ -818,10 +820,13 @@ class MedusaModule {
     modulePath,
   }: MigrationOptions): Promise<void> {
     const moduleResolutions = registerMedusaModule(moduleKey, {
-      scope: MODULE_SCOPE.INTERNAL,
       resolve: modulePath,
       options,
-    })
+      dependencies: [],
+      alias: undefined,
+      main: false,
+      scope: "internal",
+    } as InternalModuleDeclaration)
 
     const logger_ =
       container?.resolve(ContainerRegistrationKeys.LOGGER, {

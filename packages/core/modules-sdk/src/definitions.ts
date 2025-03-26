@@ -1,25 +1,17 @@
-import { ModuleDefinition } from "@medusajs/types"
-import {
-  ContainerRegistrationKeys,
-  MODULE_PACKAGE_NAMES,
-  Modules,
-  upperCaseFirst,
-} from "@medusajs/utils"
-import { MODULE_SCOPE } from "./types"
+import { ContainerRegistrationKeys, Modules, upperCaseFirst } from "@medusajs/utils"
+import { InternalModuleDeclaration, ModuleDefinition } from "@medusajs/types"
 
 export const ModulesDefinition: {
   [key: string]: ModuleDefinition
 } = {
   [Modules.EVENT_BUS]: {
     key: Modules.EVENT_BUS,
-    defaultPackage: MODULE_PACKAGE_NAMES[Modules.EVENT_BUS],
+    defaultPackage: false,
     label: upperCaseFirst(Modules.EVENT_BUS),
-    isRequired: true,
+    isRequired: false,
     isQueryable: false,
     dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.STOCK_LOCATION]: {
     key: Modules.STOCK_LOCATION,
@@ -27,42 +19,8 @@ export const ModulesDefinition: {
     label: upperCaseFirst(Modules.STOCK_LOCATION),
     isRequired: false,
     isQueryable: true,
-    dependencies: [Modules.EVENT_BUS],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.INVENTORY]: {
-    key: Modules.INVENTORY,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.INVENTORY),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [Modules.EVENT_BUS],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.CACHE]: {
-    key: Modules.CACHE,
-    defaultPackage: MODULE_PACKAGE_NAMES[Modules.CACHE],
-    label: upperCaseFirst(Modules.CACHE),
-    isRequired: true,
-    isQueryable: false,
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.PRODUCT]: {
-    key: Modules.PRODUCT,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.PRODUCT),
-    isRequired: false,
-    isQueryable: true,
     dependencies: [Modules.EVENT_BUS, ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.PRICING]: {
     key: Modules.PRICING,
@@ -71,9 +29,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: true,
     dependencies: [Modules.EVENT_BUS, ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.PROMOTION]: {
     key: Modules.PROMOTION,
@@ -82,9 +38,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: true,
     dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.AUTH]: {
     key: Modules.AUTH,
@@ -93,9 +47,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: true,
     dependencies: [ContainerRegistrationKeys.LOGGER, Modules.CACHE],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.WORKFLOW_ENGINE]: {
     key: Modules.WORKFLOW_ENGINE,
@@ -105,9 +57,7 @@ export const ModulesDefinition: {
     isQueryable: true,
     dependencies: [ContainerRegistrationKeys.LOGGER],
     __passSharedContainer: true,
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.SALES_CHANNEL]: {
     key: Modules.SALES_CHANNEL,
@@ -116,9 +66,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: true,
     dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.FULFILLMENT]: {
     key: Modules.FULFILLMENT,
@@ -127,9 +75,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: true,
     dependencies: [ContainerRegistrationKeys.LOGGER, Modules.EVENT_BUS],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.CART]: {
     key: Modules.CART,
@@ -137,131 +83,14 @@ export const ModulesDefinition: {
     label: upperCaseFirst(Modules.CART),
     isRequired: false,
     isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.CUSTOMER]: {
-    key: Modules.CUSTOMER,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.CUSTOMER),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.PAYMENT]: {
-    key: Modules.PAYMENT,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.PAYMENT),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.USER]: {
-    key: Modules.USER,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.USER),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [Modules.EVENT_BUS, ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.REGION]: {
-    key: Modules.REGION,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.REGION),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.ORDER]: {
-    key: Modules.ORDER,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.ORDER),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER, Modules.EVENT_BUS],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.TAX]: {
-    key: Modules.TAX,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.TAX),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER, Modules.EVENT_BUS],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.API_KEY]: {
-    key: Modules.API_KEY,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.API_KEY),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.STORE]: {
-    key: Modules.STORE,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.STORE),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.CURRENCY]: {
-    key: Modules.CURRENCY,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.CURRENCY),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.FILE]: {
-    key: Modules.FILE,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.FILE),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
-  },
-  [Modules.NOTIFICATION]: {
-    key: Modules.NOTIFICATION,
-    defaultPackage: false,
-    label: upperCaseFirst(Modules.NOTIFICATION),
-    isRequired: false,
-    isQueryable: true,
-    dependencies: [Modules.EVENT_BUS, ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    dependencies: [
+      Modules.EVENT_BUS,
+      Modules.PRICING,
+      Modules.PROMOTION,
+      ContainerRegistrationKeys.LOGGER,
+      ContainerRegistrationKeys.QUERY,
+    ],
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.INDEX]: {
     key: Modules.INDEX,
@@ -276,9 +105,7 @@ export const ModulesDefinition: {
       ContainerRegistrationKeys.REMOTE_QUERY,
       ContainerRegistrationKeys.QUERY,
     ],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
   [Modules.LOCKING]: {
     key: Modules.LOCKING,
@@ -287,9 +114,7 @@ export const ModulesDefinition: {
     isRequired: false,
     isQueryable: false,
     dependencies: [ContainerRegistrationKeys.LOGGER],
-    defaultModuleDeclaration: {
-      scope: MODULE_SCOPE.INTERNAL,
-    },
+    defaultModuleDeclaration: {} as InternalModuleDeclaration,
   },
 }
 
